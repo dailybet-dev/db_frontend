@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from 'react';
-import { Activity, ArrowDown, Award, ChevronDown, CircleHelp, Globe, Clock3, Dices, Flame, Gamepad2, Home, Menu, Search, ShieldCheck, Smartphone, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Activity, ArrowDown, Award, ChevronDown, CircleHelp, Globe, Clock3, Dices, Flame, Gamepad2, Home, Menu, Search, ShieldCheck, Smartphone, Share2, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
 
 type Sport = 'Football' | 'Basketball' | 'eFootball' | 'Tennis';
 type Match = { id: string; sport: Sport; league: string; region: string; start: string; live: boolean; home: string; away: string; odds: [string, string, string] };
@@ -53,6 +53,60 @@ export default function Sportsbook() {
   const [notice, setNotice] = useState('');
   const [mobileMenu, setMobileMenu] = useState(false);
   const [bookingCode, setBookingCode] = useState('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  const slipBookingCode = useMemo(() => {
+    if (picks.length === 0) return '';
+    const source = picks.map(p => `${p.matchId}:${p.selection}:${p.price}`).join('|');
+    let hash = 0;
+    for (let i = 0; i < source.length; i++) hash = ((hash << 5) - hash + source.charCodeAt(i)) | 0;
+    return 'DB-' + Math.abs(hash).toString(36).toUpperCase().padStart(5, '0').slice(0, 7);
+  }, [picks]);
+
+  useEffect(() => {
+    const updateScrollState = () => setShowBackToTop(
+      window.scrollY > 260 || (mainRef.current?.scrollTop ?? 0) > 260
+    );
+    window.addEventListener('scroll', updateScrollState, { passive: true });
+    const main = mainRef.current;
+    main?.addEventListener('scroll', updateScrollState, { passive: true });
+    updateScrollState();
+    return () => {
+      window.removeEventListener('scroll', updateScrollState);
+      main?.removeEventListener('scroll', updateScrollState);
+    };
+  }, []);
+
+  async function shareSlipBookingCode() {
+    if (!slipBookingCode) return;
+    const shareText = `DailyBet booking code: ${slipBookingCode}\n${picks.map(p => `${p.home} vs ${p.away} — ${p.selection} @ ${p.price.toFixed(2)}`).join('\n')}`;
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({ title: 'DailyBet betslip', text: shareText });
+      } else if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareText);
+        setNotice('Booking code and selections copied to clipboard.');
+      } else {
+        setNotice(shareText);
+      }
+    } catch (error) {
+      if (!(error instanceof Error && error.name === 'AbortError')) {
+        setNotice('Could not open sharing. Booking code: ' + slipBookingCode);
+      }
+    }
+  }
+
+  function loadBetslip() {
+    const entered = bookingCode.trim().toUpperCase();
+    if (!entered) {
+      setNotice('Enter a booking code to load a betslip.');
+    } else if (entered === slipBookingCode) {
+      setSlipOpen(true);
+      setNotice('Your current demo betslip has been opened.');
+    } else {
+      setNotice('Booking-code lookup across devices will be available when the sportsbook backend is connected.');
+    }
+  }
 
   const shown = useMemo(() => matches.filter(m => {
     const search = (m.home+' '+m.away+' '+m.league+' '+m.region).toLowerCase().includes(query.toLowerCase());
@@ -100,11 +154,15 @@ export default function Sportsbook() {
   const slip = <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_18px_rgba(7,27,73,.05)]">
     <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4">
       <div><h2 className="font-extrabold text-slate-900">Bet slip <span className="text-[#1769e0]">({picks.length})</span></h2><p className="mt-1 text-[11px] text-slate-500">Your selections</p></div>
-      {picks.length>0 && <button onClick={()=>setPicks([])} className="text-xs font-bold text-slate-500 hover:text-[#1769e0]">Clear all</button>}
+      {picks.length>0 && <button onClick={()=>setPicks([])} className="text-xs font-bold text-slate-500 hover:text-[#1769e0]">Clear Betslip</button>}
       {slipOpen && <button aria-label="Close bet slip" onClick={()=>setSlipOpen(false)} className="rounded-md p-1 text-slate-500"><X size={19}/></button>}
     </div>
     {picks.length===0 ? <div className="px-5 py-10 text-center"><div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-blue-50 text-[#1769e0]"><Ticket size={22}/></div><p className="font-extrabold text-slate-700">Your bet slip is empty</p><p className="mx-auto mt-2 max-w-[220px] text-xs leading-5 text-slate-500">Select odds from a match to add your prediction here.</p></div> :
     <div className="p-4">
+      <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2.5">
+        <div className="min-w-0"><p className="text-[9px] font-extrabold tracking-wide text-slate-500">BOOKING CODE</p><p className="mt-0.5 truncate text-sm font-black tracking-wide text-[#071b49]">{slipBookingCode}</p></div>
+        <button onClick={shareSlipBookingCode} aria-label="Share booking code and betslip" title="Share booking code" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#1769e0] px-3 py-2 text-[11px] font-extrabold text-white transition hover:bg-[#0d54bd]"><Share2 size={14}/> Share</button>
+      </div>
       <div className="space-y-3">{picks.map(p=><div key={p.key} className="rounded-lg border border-slate-200 p-3"><div className="flex items-start justify-between gap-2"><div><p className="text-xs font-extrabold text-slate-800">{p.home} vs {p.away}</p><p className="mt-1 text-[10px] text-slate-500">{p.league} · Pick {p.selection}</p></div><button aria-label="Remove pick" onClick={()=>setPicks(old=>old.filter(x=>x.key!==p.key))} className="text-slate-400 hover:text-red-500"><X size={16}/></button></div><p className="mt-2 text-sm font-black text-[#1769e0]">{p.price.toFixed(2)}</p></div>)}</div>
       <label className="mt-4 block text-[10px] font-extrabold tracking-wide text-slate-500">STAKE · UGX</label><input type="number" min="0" step="500" value={stake} onChange={e=>setStake(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-3 font-bold outline-none focus:border-blue-500"/>
       <div className="mt-4 flex justify-between text-xs text-slate-500"><span>Combined odds</span><b className="text-slate-800">{combined.toFixed(2)}</b></div>
@@ -154,7 +212,7 @@ export default function Sportsbook() {
         <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3"><p className="text-[10px] font-extrabold text-emerald-800">Play responsibly</p><p className="mt-1 text-[10px] leading-4 text-emerald-800/70">Only bet what you can afford to lose.</p></div>
       </aside>
 
-      <main ref={mainRef} className="min-w-0 lg:max-h-[calc(100vh-140px)] lg:overflow-y-hidden lg:overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hover:overflow-y-auto">
+      <main ref={mainRef} className="min-w-0 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:overscroll-y-contain touch-pan-y [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <nav className="mb-3 flex gap-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">{sports.map(s=><button key={s.name} onClick={()=>chooseSport(s.name)} className={'shrink-0 rounded-lg px-3 py-2.5 text-xs font-extrabold transition sm:flex-1 sm:px-2 '+((sport===s.name||(s.name==='Live'&&filter==='live'))?'bg-[#1769e0] text-white':'text-slate-500 hover:bg-slate-100')}><span className="mr-1.5">{s.icon}</span>{s.name}</button>)}</nav>
         <section className="relative mb-3 overflow-hidden rounded-xl bg-gradient-to-r from-[#071b49] via-[#103e8d] to-[#1769e0] px-4 py-5 text-white sm:px-6 sm:py-6"><div className="absolute -right-6 -top-20 h-56 w-56 rounded-full border-[24px] border-white/[.06]"/><div className="relative z-10 flex items-center justify-between gap-3"><div><p className="text-[9px] font-black tracking-[2px] text-blue-200 sm:text-[10px]">WELCOME TO DAILYBET</p><h1 className="mt-2 text-[21px] font-black tracking-tight sm:text-[27px]">Every match. Every moment.</h1><p className="mt-1.5 max-w-sm text-[11px] leading-5 text-blue-100 sm:text-xs">Follow the action, explore markets and build your bet slip.</p></div><div className="hidden rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-[11px] font-extrabold sm:block"><ShieldCheck className="mr-1.5 inline" size={15}/>DAILYBET</div></div></section>
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_18px_rgba(7,27,73,.04)]">
@@ -166,14 +224,14 @@ export default function Sportsbook() {
             </article>
           </div>)}
         </section>
-        <div className="mt-3 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-[10px] leading-4 text-slate-500"><CircleHelp size={15} className="mt-0.5 shrink-0 text-[#1769e0]"/><p><b className="text-slate-700">Preview environment.</b> Fixtures and prices are illustrative, not live. Real-time odds and bet placement are disabled until approved sportsbook infrastructure is connected.</p></div><div className="flex justify-center py-6"><button onClick={()=>mainRef.current?.scrollTo({top:0,behavior:"smooth"})} className="inline-flex items-center gap-2 rounded-full border border-[#d7e5ff] bg-white px-5 py-2.5 text-xs font-extrabold text-[#1769e0] shadow-[0_4px_16px_rgba(7,27,73,.08)] transition hover:border-[#1769e0] hover:bg-blue-50"><ArrowDown size={14} className="rotate-180"/>Back to top</button></div>
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-[10px] leading-4 text-slate-500"><CircleHelp size={15} className="mt-0.5 shrink-0 text-[#1769e0]"/><p><b className="text-slate-700">Preview environment.</b> Fixtures and prices are illustrative, not live. Real-time odds and bet placement are disabled until approved sportsbook infrastructure is connected.</p></div>
       </main>
 
-      <aside className="hidden max-h-[calc(100vh-140px)] space-y-3 overflow-y-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden hover:overflow-y-auto lg:block">        <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <aside className="hidden max-h-[calc(100vh-140px)] space-y-3 overflow-y-auto overscroll-y-contain touch-pan-y [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:block">        <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
           <label htmlFor="booking-code" className="mb-2 flex items-center gap-2 text-[10px] font-black tracking-wide text-slate-600"><Search size={14}/>BOOKING CODE SEARCH</label>
-          <div className="flex gap-2">
-            <input id="booking-code" value={bookingCode} onChange={e=>setBookingCode(e.target.value)} placeholder="Enter booking code" className="min-w-0 w-full rounded-full border border-slate-200 bg-white px-3 py-2.5 text-xs outline-none focus:rounded-full focus:border-blue-400 focus:outline-none focus:ring-0"/>
-            <button onClick={()=>setNotice(bookingCode.trim() ? 'Booking code lookup will be enabled when the sportsbook provider is connected.' : 'Enter a booking code to search.')} className="shrink-0 rounded-full bg-[#1769e0] px-3 py-2 text-[10px] font-extrabold text-white hover:bg-[#0d54bd]">Search</button>
+          <div className="flex flex-col gap-2">
+            <input id="booking-code" value={bookingCode} onChange={e=>setBookingCode(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')loadBetslip()}} placeholder="Enter booking code" className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs outline-none focus:border-blue-400 focus:outline-none focus:ring-0"/>
+            <button onClick={loadBetslip} className="w-full rounded-lg bg-[#1769e0] px-3 py-2.5 text-[11px] font-extrabold text-white transition hover:bg-[#0d54bd]">Load Betslip</button>
           </div>
         </section>
 {slip}<section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center gap-2 text-sm font-extrabold"><Sparkles size={17} className="text-[#1769e0]"/>New to DailyBet?</div><p className="mt-2 text-[11px] leading-5 text-slate-500">A clear, mobile-friendly home for the sports and markets you follow. Account and payment features are being prepared.</p><button onClick={()=>setNotice('Secure registration will be available after the authentication service is connected.')} className="mt-3 text-xs font-extrabold text-[#1769e0]">Create an account →</button></section><section className="rounded-xl bg-[#071b49] p-4 text-white"><div className="flex items-center gap-2 text-xs font-extrabold"><Zap size={15} className="text-blue-300"/>DailyBet promise</div><p className="mt-2 text-[11px] leading-5 text-blue-100/75">A simple experience, transparent selections and responsible play at every step.</p></section></aside>
@@ -194,6 +252,7 @@ export default function Sportsbook() {
       </nav>
     </div>
 
+    {showBackToTop && <button onClick={()=>{mainRef.current?.scrollTo({top:0,behavior:"smooth"});window.scrollTo({top:0,behavior:"smooth"});}} className="fixed bottom-24 right-4 z-30 inline-flex items-center gap-2 rounded-full border border-[#d7e5ff] bg-white/95 px-4 py-3 text-xs font-extrabold text-[#1769e0] shadow-[0_8px_24px_rgba(7,27,73,.2)] backdrop-blur transition hover:border-[#1769e0] hover:bg-blue-50 lg:bottom-6 lg:right-6" aria-label="Back to top"><ArrowDown size={14} className="rotate-180"/>Back to top</button>}
     {slipOpen&&<div className="fixed inset-0 z-50 flex items-end justify-center bg-[#071b49]/55 sm:items-center lg:hidden" onClick={e=>{if(e.target===e.currentTarget)setSlipOpen(false)}}><div className="max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-3 pb-[max(16px,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-2xl">{slip}</div></div>}
     {notice&&<div role="status" className="fixed bottom-20 left-1/2 z-[60] flex w-[calc(100%-24px)] max-w-lg -translate-x-1/2 items-start gap-3 rounded-xl bg-[#071b49] px-4 py-3.5 text-xs leading-5 text-white shadow-xl lg:bottom-6"><Smartphone size={17} className="mt-0.5 shrink-0 text-blue-300"/><p className="flex-1">{notice}</p><button aria-label="Dismiss" onClick={()=>setNotice('')} className="shrink-0 text-white/70 hover:text-white"><X size={17}/></button></div>}
   </div>;
