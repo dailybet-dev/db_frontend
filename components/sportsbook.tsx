@@ -113,8 +113,9 @@ export default function Sportsbook() {
     return search && (!selectedLeague || m.league===selectedLeague) && (!selectedCountry || m.region===selectedCountry) && (sport==='All' || sport===m.sport || (sport==='Live' && m.live)) && (filter==='all' || (filter==='live' && m.live) || (filter==='upcoming' && !m.live));
   }), [sport, filter, query, selectedLeague, selectedCountry]);
   const combined = picks.reduce((acc,p) => acc*p.price, 1);
-  const stakeValue = Math.max(0, Number(stake) || 0);
+  const stakeValue = Math.max(1, Number(stake) || 1);
   const payout = stakeValue*combined;
+  const potentialWinnings = Math.max(0, payout - stakeValue);
   const winBonus = picks.length >= 5 ? 125 : picks.length === 4 ? 100 : picks.length === 3 ? 50 : picks.length === 2 ? 25 : 0;
   const sportCatalog = sport === 'Basketball' ? {
     leagues:[{name:'NBA',icon:'🇺🇸'},{name:'EuroLeague',icon:'🇪🇺'},{name:'WNBA',icon:'🇺🇸'},{name:'NCAA',icon:'🇺🇸'}],
@@ -164,9 +165,13 @@ export default function Sportsbook() {
         <button onClick={shareSlipBookingCode} aria-label="Share booking code and betslip" title="Share booking code" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#1769e0] px-3 py-2 text-[11px] font-extrabold text-white transition hover:bg-[#0d54bd]"><Share2 size={14}/> Share</button>
       </div>
       <div className="space-y-3">{picks.map(p=><div key={p.key} className="rounded-lg border border-slate-200 p-3"><div className="flex items-start justify-between gap-2"><div><p className="text-xs font-extrabold text-slate-800">{p.home} vs {p.away}</p><p className="mt-1 text-[10px] text-slate-500">{p.league} · Pick {p.selection}</p></div><button aria-label="Remove pick" onClick={()=>setPicks(old=>old.filter(x=>x.key!==p.key))} className="text-slate-400 hover:text-red-500"><X size={16}/></button></div><p className="mt-2 text-sm font-black text-[#1769e0]">{p.price.toFixed(2)}</p></div>)}</div>
-      <label className="mt-4 block text-[10px] font-extrabold tracking-wide text-slate-500">STAKE · UGX</label><input type="number" min="0" step="500" value={stake} onChange={e=>setStake(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-3 font-bold outline-none focus:border-blue-500"/>
-      <div className="mt-4 flex justify-between text-xs text-slate-500"><span>Combined odds</span><b className="text-slate-800">{combined.toFixed(2)}</b></div>
-      <div className="mt-3 flex items-center justify-between"><span className="text-xs text-slate-500">Potential return*</span><strong className="text-lg font-black text-[#16804a]">UGX {Math.round(payout).toLocaleString('en-UG')}</strong></div>
+      <label className="mt-4 block text-[10px] font-extrabold tracking-wide text-slate-500">STAKE · UGX</label><input type="number" min="1" step="1" value={stake} onChange={e=>setStake(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-3 font-bold outline-none focus:border-blue-500"/>
+      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-3">
+        <div className="flex items-center justify-between gap-3 py-1.5"><span className="text-xs text-slate-500">Min Stake</span><strong className="text-sm font-extrabold text-slate-800">UGX 1.00</strong></div>
+        <div className="flex items-center justify-between gap-3 border-t border-slate-200 py-2"><span className="text-xs text-slate-500">Odds</span><strong className="text-sm font-extrabold text-slate-800">{combined.toFixed(2)}</strong></div>
+        <div className="flex items-center justify-between gap-3 border-t border-slate-200 py-2"><span className="text-xs text-slate-500">Potential Winnings</span><strong className="text-sm font-extrabold text-[#16804a]">UGX {potentialWinnings.toLocaleString('en-UG',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+        <div className="mt-1 flex items-center justify-between gap-3 border-t border-slate-200 pt-3"><span className="text-sm font-extrabold text-slate-800">Payout</span><strong className="text-lg font-black text-[#16804a]">UGX {payout.toLocaleString('en-UG',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+      </div>
       <button onClick={()=>setNotice('Please log in to place a bet. Login will be available when the authentication service is connected.')} className="mt-4 w-full rounded-lg bg-[#1769e0] px-4 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#0d54bd]">Login to place bet <span aria-hidden="true">→</span></button>
       <p className="mt-3 text-center text-[10px] leading-4 text-slate-400">*Illustrative calculation only. Odds are sample data, not live prices.</p>
     </div>}
