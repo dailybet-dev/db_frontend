@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { Activity, ArrowDown, ChevronDown, CircleHelp, Clock3, Flame, Gamepad2, Menu, Search, ShieldCheck, Smartphone, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
 
-type Sport = 'Football' | 'Basketball' | 'Tennis';
 type Match = { id: string; sport: Sport; league: string; region: string; start: string; live: boolean; home: string; away: string; odds: [string, string, string] };
 type Pick = { key: string; matchId: string; selection: string; price: number; home: string; away: string; league: string };
 
