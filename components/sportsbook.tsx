@@ -100,13 +100,6 @@ export default function Sportsbook() {
 
     <div className="mx-auto grid max-w-[1480px] grid-cols-1 items-start gap-4 px-2.5 py-4 sm:px-4 lg:grid-cols-[205px_minmax(0,1fr)_300px] lg:gap-4 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
       <aside className="hidden max-h-[calc(100vh-140px)] overflow-y-hidden overscroll-contain rounded-xl border border-slate-200 bg-white p-2 shadow-sm hover:overflow-y-auto lg:block">
-        <section className="mb-2 rounded-lg bg-slate-50 p-2.5">
-          <label htmlFor="booking-code" className="mb-2 flex items-center gap-2 text-[10px] font-black tracking-wide text-slate-600"><Search size={14}/>BOOKING CODE SEARCH</label>
-          <div className="flex gap-1.5">
-            <input id="booking-code" value={bookingCode} onChange={e=>setBookingCode(e.target.value)} placeholder="Enter code" className="min-w-0 w-full rounded-full border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:rounded-full focus:border-blue-400 focus:outline-none focus:ring-0"/>
-            <button onClick={()=>setNotice(bookingCode.trim() ? 'Booking code lookup will be enabled when the sportsbook provider is connected.' : 'Enter a booking code to search.')} className="shrink-0 rounded-full bg-[#1769e0] px-3 py-2 text-[10px] font-extrabold text-white hover:bg-[#0d54bd]">Search</button>
-          </div>
-        </section>
         <p className="px-3 pb-2 pt-3 text-[10px] font-black tracking-[1.4px] text-slate-400">MAIN MENU</p>
         {[{name:'Sports home',icon:<Trophy size={17}/>,action:()=>{setSport('Football');setFilter('all')}},{name:'Live now',icon:<Activity size={17}/>,action:()=>{setSport('All');setFilter('live')}},{name:'Upcoming',icon:<Clock3 size={17}/>,action:()=>{setSport('All');setFilter('upcoming')}},{name:'Popular',icon:<Flame size={17}/>,action:()=>{setSport('Football');setFilter('all')}}].map((item,i)=><button key={item.name} onClick={item.action} className={'mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-xs font-bold '+((i===0&&filter==='all'&&sport==='Football')?'bg-blue-50 text-[#1769e0]':'text-slate-600 hover:bg-slate-50')}><span>{item.icon}</span>{item.name}{i===1&&<span className="ml-auto rounded bg-rose-50 px-1.5 py-0.5 text-[10px] text-rose-500">LIVE</span>}</button>)}
         <p className="px-3 pb-2 pt-5 text-[10px] font-black tracking-[1.4px] text-slate-400">SPORTS</p>
