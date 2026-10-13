@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from 'react';
-import { Activity, ArrowDown, Award, ChevronDown, CircleHelp, Clock3, Dices, Flame, Gamepad2, Home, Menu, Search, ShieldCheck, Smartphone, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Activity, ArrowDown, Award, ChevronDown, CircleHelp, Globe, Clock3, Dices, Flame, Gamepad2, Home, Menu, Search, ShieldCheck, Smartphone, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
 
-type Sport = 'Football' | 'Basketball' | 'Tennis';
+type Sport = 'Football' | 'Basketball' | 'eFootball' | 'Tennis';
 type Match = { id: string; sport: Sport; league: string; region: string; start: string; live: boolean; home: string; away: string; odds: [string, string, string] };
 type Pick = { key: string; matchId: string; selection: string; price: number; home: string; away: string; league: string };
 
@@ -15,10 +15,12 @@ const matches: Match[] = [
   { id:'m5', sport:'Football', league:'Champions League', region:'EUROPE', start:'21:00', live:true, home:'Bayern Munich', away:'Paris Saint-Germain', odds:['2.30','3.55','2.75'] },
   { id:'m6', sport:'Basketball', league:'NBA', region:'UNITED STATES', start:'22:30', live:false, home:'Boston Celtics', away:'Miami Heat', odds:['1.72','—','2.08'] },
   { id:'m7', sport:'Tennis', league:'ATP Singles', region:'TOUR', start:'14:30', live:true, home:'A. Player', away:'B. Player', odds:['1.85','—','1.95'] },
+  { id:'m8', sport:'eFootball', league:'eFootball Champions Cup', region:'GLOBAL', start:'15:15', live:true, home:'Team Alpha', away:'Team Omega', odds:['1.88','3.60','2.20'] },
+  { id:'m9', sport:'eFootball', league:'eFootball International', region:'EUROPE', start:'16:00', live:false, home:'Pro United', away:'Digital FC', odds:['2.05','3.40','2.95'] },
 ];
 
-const sports: Array<{name: 'Football' | 'Basketball' | 'Tennis' | 'Live' | 'Virtuals'; icon: string}> = [
-  {name:'Football',icon:'⚽'},{name:'Live',icon:'●'},{name:'Basketball',icon:'🏀'},{name:'Tennis',icon:'🎾'},{name:'Virtuals',icon:'✦'}
+const sports: Array<{name: 'Football' | 'Basketball' | 'eFootball' | 'Tennis' | 'Live' | 'Virtuals'; icon: string}> = [
+  {name:'Football',icon:'⚽'},{name:'Live',icon:'●'},{name:'Basketball',icon:'🏀'},{name:'eFootball',icon:'🎮'},{name:'Tennis',icon:'🎾'},{name:'Virtuals',icon:'✦'}
 ];
 
 function Brand() {
@@ -35,6 +37,8 @@ export default function Sportsbook() {
   const [sport, setSport] = useState<string>('Football');
   const [selectedLeague, setSelectedLeague] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [openSections, setOpenSections] = useState({leagues:true,popular:true,other:true});
+  const mainRef = useRef<HTMLElement | null>(null);
   const [filter, setFilter] = useState<'all'|'live'|'upcoming'>('all');
   const [query, setQuery] = useState('');
   const [picks, setPicks] = useState<Pick[]>([]);
@@ -52,6 +56,25 @@ export default function Sportsbook() {
   const stakeValue = Math.max(0, Number(stake) || 0);
   const payout = stakeValue*combined;
   const winBonus = picks.length >= 5 ? 125 : picks.length === 4 ? 100 : picks.length === 3 ? 50 : picks.length === 2 ? 25 : 0;
+  const sportCatalog = sport === 'Basketball' ? {
+    leagues:[{name:'NBA',icon:'🇺🇸'},{name:'EuroLeague',icon:'🇪🇺'},{name:'WNBA',icon:'🇺🇸'},{name:'NCAA',icon:'🇺🇸'}],
+    popular:[{name:'United States',region:'UNITED STATES',flag:'🇺🇸'},{name:'Spain',region:'SPAIN',flag:'🇪🇸'},{name:'Turkey',region:'TURKEY',flag:'🇹🇷'}],
+    other:[{name:'France',region:'FRANCE',flag:'🇫🇷'},{name:'Italy',region:'ITALY',flag:'🇮🇹'},{name:'Germany',region:'GERMANY',flag:'🇩🇪'},{name:'Australia',region:'AUSTRALIA',flag:'🇦🇺'},{name:'Canada',region:'CANADA',flag:'🇨🇦'},{name:'Uganda',region:'UGANDA',flag:'🇺🇬'}]
+  } : sport === 'eFootball' ? {
+    leagues:[{name:'eFootball Champions Cup',icon:'🎮'},{name:'eFootball International',icon:'🌐'},{name:'eFootball Pro League',icon:'🏆'}],
+    popular:[{name:'Global',region:'GLOBAL',flag:'🌐'},{name:'Europe',region:'EUROPE',flag:'🇪🇺'},{name:'Brazil',region:'BRAZIL',flag:'🇧🇷'}],
+    other:[{name:'Japan',region:'JAPAN',flag:'🇯🇵'},{name:'South Korea',region:'SOUTH KOREA',flag:'🇰🇷'},{name:'Argentina',region:'ARGENTINA',flag:'🇦🇷'},{name:'United States',region:'UNITED STATES',flag:'🇺🇸'}]
+  } : sport === 'Tennis' ? {
+    leagues:[{name:'ATP Singles',icon:'🎾'},{name:'WTA Singles',icon:'🎾'},{name:'Grand Slam',icon:'🏆'},{name:'Challenger Tour',icon:'🌍'}],
+    popular:[{name:'France',region:'FRANCE',flag:'🇫🇷'},{name:'United Kingdom',region:'UNITED KINGDOM',flag:'🇬🇧'},{name:'United States',region:'UNITED STATES',flag:'🇺🇸'},{name:'Australia',region:'AUSTRALIA',flag:'🇦🇺'}],
+    other:[{name:'Spain',region:'SPAIN',flag:'🇪🇸'},{name:'Italy',region:'ITALY',flag:'🇮🇹'},{name:'Germany',region:'GERMANY',flag:'🇩🇪'},{name:'Uganda',region:'UGANDA',flag:'🇺🇬'}]
+  } : {
+    leagues:[{name:'Premier League',icon:'🇬🇧'},{name:'La Liga',icon:'🇪🇸'},{name:'Serie A',icon:'🇮🇹'},{name:'Champions League',icon:'🇪🇺'},{name:'Bundesliga',icon:'🇩🇪'},{name:'Ligue 1',icon:'🇫🇷'}],
+    popular:[{name:'England',region:'ENGLAND',flag:'🇬🇧'},{name:'Spain',region:'SPAIN',flag:'🇪🇸'},{name:'Italy',region:'ITALY',flag:'🇮🇹'},{name:'Uganda',region:'UGANDA',flag:'🇺🇬'},{name:'United States',region:'UNITED STATES',flag:'🇺🇸'}],
+    other:[{name:'Germany',region:'GERMANY',flag:'🇩🇪'},{name:'France',region:'FRANCE',flag:'🇫🇷'},{name:'Portugal',region:'PORTUGAL',flag:'🇵🇹'},{name:'Netherlands',region:'NETHERLANDS',flag:'🇳🇱'},{name:'Brazil',region:'BRAZIL',flag:'🇧🇷'},{name:'Argentina',region:'ARGENTINA',flag:'🇦🇷'},{name:'Japan',region:'JAPAN',flag:'🇯🇵'},{name:'Australia',region:'AUSTRALIA',flag:'🇦🇺'},{name:'South Africa',region:'SOUTH AFRICA',flag:'🇿🇦'},{name:'Kenya',region:'KENYA',flag:'🇰🇪'},{name:'Tanzania',region:'TANZANIA',flag:'🇹🇿'},{name:'Nigeria',region:'NIGERIA',flag:'🇳🇬'},{name:'Ghana',region:'GHANA',flag:'🇬🇭'}]
+  };
+  const leagueCount = (name: string) => matches.filter(m=>m.sport===sport && m.league===name).length;
+  const countryCount = (region: string) => matches.filter(m=>m.sport===sport && m.region===region).length;
   const bonusPicks = picks.map(p => `${p.home} vs ${p.away} · ${p.selection} @ ${p.price.toFixed(2)}`);
 
   function togglePick(match: Match, label: string, value: string) {
@@ -109,22 +132,23 @@ export default function Sportsbook() {
     </header>
 
     <div className="mx-auto grid max-w-[1480px] grid-cols-1 items-start gap-4 px-2.5 py-4 sm:px-4 lg:grid-cols-[205px_minmax(0,1fr)_300px] lg:gap-4 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
-      <aside className="hidden max-h-[calc(100vh-140px)] overflow-y-hidden overscroll-contain rounded-2xl border border-slate-200/80 bg-white p-3 shadow-[0_8px_28px_rgba(7,27,73,.06)] hover:overflow-y-auto lg:block">
-        <div className="mb-4 rounded-xl bg-gradient-to-br from-[#071b49] to-[#17468e] p-3.5 text-white"><p className="text-[10px] font-black tracking-[1.8px] text-blue-200">EXPLORE SPORTS</p><p className="mt-1 text-sm font-extrabold">Find your competition</p><p className="mt-1 text-[10px] leading-4 text-blue-100/75">Browse leagues and countries</p></div>
-        <section className="mb-5"><div className="mb-2 flex items-center justify-between px-1"><h2 className="text-[10px] font-black tracking-[1.5px] text-slate-400">LEAGUES</h2><Trophy size={14} className="text-[#1769e0]"/></div><div className="space-y-1">
-          {[{name:'Premier League',icon:'🏴'},{name:'La Liga',icon:'🇪🇸'},{name:'Serie A',icon:'🇮🇹'},{name:'Champions League',icon:'⭐'},{name:'NBA',icon:'🏀'},{name:'ATP Singles',icon:'🎾'}].map(item=><button key={item.name} onClick={()=>chooseLeague(item.name)} className={'group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-left text-[11px] font-bold transition '+(selectedLeague===item.name?'bg-blue-50 text-[#1769e0] ring-1 ring-blue-100':'text-slate-600 hover:bg-slate-50')}><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-100 bg-white text-base shadow-sm">{item.icon}</span><span className="min-w-0 flex-1 truncate">{item.name}</span><ChevronDown size={13} className="-rotate-90 text-slate-300 transition group-hover:text-[#1769e0]"/></button>)}
-        </div></section>
-        <section className="mb-5"><div className="mb-2 flex items-center justify-between px-1"><h2 className="text-[10px] font-black tracking-[1.5px] text-slate-400">POPULAR COUNTRIES</h2><Flame size={14} className="text-orange-400"/></div><div className="space-y-1">
-          {[{name:'England',region:'ENGLAND',flag:'🏴'},{name:'Spain',region:'SPAIN',flag:'🇪🇸'},{name:'Italy',region:'ITALY',flag:'🇮🇹'},{name:'Uganda',region:'UGANDA',flag:'🇺🇬'},{name:'United States',region:'UNITED STATES',flag:'🇺🇸'}].map(item=><button key={item.region} onClick={()=>chooseCountry(item.region)} className={'flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-[11px] font-semibold transition '+(selectedCountry===item.region?'bg-blue-50 text-[#1769e0] ring-1 ring-blue-100':'text-slate-600 hover:bg-slate-50')}><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-100 bg-white text-base shadow-sm">{item.flag}</span><span className="flex-1">{item.name}</span><span className="text-[9px] text-slate-300">›</span></button>)}
-        </div></section>
-        <section><div className="mb-2 flex items-center justify-between px-1"><h2 className="text-[10px] font-black tracking-[1.5px] text-slate-400">OTHER COUNTRIES</h2><ChevronDown size={14} className="text-slate-400"/></div><div className="space-y-1">
-          {[{name:'Germany',region:'GERMANY',flag:'🇩🇪'},{name:'France',region:'FRANCE',flag:'🇫🇷'},{name:'Portugal',region:'PORTUGAL',flag:'🇵🇹'},{name:'Netherlands',region:'NETHERLANDS',flag:'🇳🇱'},{name:'Brazil',region:'BRAZIL',flag:'🇧🇷'},{name:'Argentina',region:'ARGENTINA',flag:'🇦🇷'},{name:'Japan',region:'JAPAN',flag:'🇯🇵'},{name:'Australia',region:'AUSTRALIA',flag:'🇦🇺'},{name:'South Africa',region:'SOUTH AFRICA',flag:'🇿🇦'},{name:'Kenya',region:'KENYA',flag:'🇰🇪'},{name:'Tanzania',region:'TANZANIA',flag:'🇹🇿'},{name:'Nigeria',region:'NIGERIA',flag:'🇳🇬'},{name:'Ghana',region:'GHANA',flag:'🇬🇭'}].map(item=><button key={item.region} onClick={()=>chooseCountry(item.region)} className={'flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-[11px] font-semibold transition '+(selectedCountry===item.region?'bg-blue-50 text-[#1769e0] ring-1 ring-blue-100':'text-slate-600 hover:bg-slate-50')}><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-100 bg-white text-base shadow-sm">{item.flag}</span><span className="flex-1">{item.name}</span><span className="text-[9px] text-slate-300">›</span></button>)}
-        </div></section>
-        {(selectedLeague||selectedCountry)&&<button onClick={()=>{setSelectedLeague('');setSelectedCountry('');setSport('Football');setFilter('all')}} className="mt-4 w-full rounded-xl border border-blue-100 bg-blue-50 px-3 py-2.5 text-[11px] font-extrabold text-[#1769e0] transition hover:bg-blue-100">Clear selection</button>}
-        <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50/70 p-3"><p className="text-[10px] font-extrabold text-emerald-800">Play responsibly</p><p className="mt-1 text-[10px] leading-4 text-emerald-800/70">Only bet what you can afford to lose.</p></div>
+      <aside className="hidden max-h-[calc(100vh-140px)] overflow-y-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rounded-2xl border border-slate-200/80 bg-white p-3 shadow-[0_8px_28px_rgba(7,27,73,.06)] hover:overflow-y-auto lg:block">
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          {[{name:'Football',icon:'⚽'},{name:'Basketball',icon:'🏀'},{name:'eFootball',icon:'🎮'},{name:'Tennis',icon:'🎾'}].map(item=><button key={item.name} onClick={()=>chooseSport(item.name)} className={'flex min-h-[66px] flex-col items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[11px] font-extrabold transition '+(sport===item.name?'border-[#1769e0] bg-blue-50 text-[#1769e0] shadow-sm':'border-slate-100 bg-slate-50/80 text-slate-600 hover:border-blue-200 hover:bg-blue-50/60')}><span className="text-xl leading-none">{item.icon}</span>{item.name}</button>)}
+        </div>
+        {[
+          {key:'leagues',title:'LEAGUES',icon:<Trophy size={14}/>,items:sportCatalog.leagues,type:'league'},
+          {key:'popular',title:'POPULAR COUNTRIES',icon:<Flame size={14}/>,items:sportCatalog.popular,type:'country'},
+          {key:'other',title:'OTHER COUNTRIES',icon:<Globe size={14}/>,items:sportCatalog.other,type:'country'}
+        ].map(section=><section key={section.key} className="mb-3 overflow-hidden rounded-xl border border-slate-200/80 bg-white">
+          <button onClick={()=>setOpenSections(old=>({...old,[section.key]:!old[section.key as keyof typeof old]}))} aria-expanded={openSections[section.key as keyof typeof openSections]} className="flex w-full items-center justify-between bg-slate-50/80 px-3 py-3 text-left"><span className="flex items-center gap-2 text-[10px] font-black tracking-[1.2px] text-slate-600"><span className="text-[#1769e0]">{section.icon}</span>{section.title}</span><ChevronDown size={15} className={'text-slate-400 transition-transform '+(openSections[section.key as keyof typeof openSections]?'':'-rotate-90')}/></button>
+          {openSections[section.key as keyof typeof openSections]&&<div className="space-y-0.5 p-1.5">{section.items.map((item:any)=>{const count=section.type==='league'?leagueCount(item.name):countryCount(item.region);const active=section.type==='league'?selectedLeague===item.name:selectedCountry===item.region;return <button key={item.name} onClick={()=>section.type==='league'?chooseLeague(item.name):chooseCountry(item.region)} className={'group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left transition '+(active?'bg-blue-50 text-[#1769e0]':'text-slate-600 hover:bg-slate-50')}><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-100 bg-white text-base shadow-sm">{item.flag||item.icon}</span><span className="min-w-0 flex-1 truncate text-[11px] font-semibold">{item.name}</span><span className="min-w-[21px] rounded-full bg-slate-100 px-1.5 py-1 text-center text-[9px] font-extrabold tabular-nums text-slate-500">{count}</span><ChevronDown size={13} className="-rotate-90 text-slate-300 transition group-hover:text-[#1769e0]"/></button>})}</div>}
+        </section>)}
+        {(selectedLeague||selectedCountry)&&<button onClick={()=>{setSelectedLeague('');setSelectedCountry('');setSport('Football');setFilter('all')}} className="mb-3 w-full rounded-xl border border-blue-100 bg-blue-50 px-3 py-2.5 text-[11px] font-extrabold text-[#1769e0] transition hover:bg-blue-100">Clear selection</button>}
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3"><p className="text-[10px] font-extrabold text-emerald-800">Play responsibly</p><p className="mt-1 text-[10px] leading-4 text-emerald-800/70">Only bet what you can afford to lose.</p></div>
       </aside>
 
-      <main className="min-w-0 lg:max-h-[calc(100vh-140px)] lg:overflow-y-hidden lg:overscroll-contain lg:hover:overflow-y-auto">
+      <main ref={mainRef} className="min-w-0 lg:max-h-[calc(100vh-140px)] lg:overflow-y-hidden lg:overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hover:overflow-y-auto">
         <nav className="mb-3 flex gap-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">{sports.map(s=><button key={s.name} onClick={()=>chooseSport(s.name)} className={'shrink-0 rounded-lg px-3 py-2.5 text-xs font-extrabold transition sm:flex-1 sm:px-2 '+((sport===s.name||(s.name==='Live'&&filter==='live'))?'bg-[#1769e0] text-white':'text-slate-500 hover:bg-slate-100')}><span className="mr-1.5">{s.icon}</span>{s.name}</button>)}</nav>
         <section className="relative mb-3 overflow-hidden rounded-xl bg-gradient-to-r from-[#071b49] via-[#103e8d] to-[#1769e0] px-4 py-5 text-white sm:px-6 sm:py-6"><div className="absolute -right-6 -top-20 h-56 w-56 rounded-full border-[24px] border-white/[.06]"/><div className="relative z-10 flex items-center justify-between gap-3"><div><p className="text-[9px] font-black tracking-[2px] text-blue-200 sm:text-[10px]">WELCOME TO DAILYBET</p><h1 className="mt-2 text-[21px] font-black tracking-tight sm:text-[27px]">Every match. Every moment.</h1><p className="mt-1.5 max-w-sm text-[11px] leading-5 text-blue-100 sm:text-xs">Follow the action, explore markets and build your bet slip.</p></div><div className="hidden rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-[11px] font-extrabold sm:block"><ShieldCheck className="mr-1.5 inline" size={15}/>DAILYBET</div></div></section>
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_18px_rgba(7,27,73,.04)]">
@@ -136,10 +160,10 @@ export default function Sportsbook() {
             </article>
           </div>)}
         </section>
-        <div className="mt-3 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-[10px] leading-4 text-slate-500"><CircleHelp size={15} className="mt-0.5 shrink-0 text-[#1769e0]"/><p><b className="text-slate-700">Preview environment.</b> Fixtures and prices are illustrative, not live. Real-time odds and bet placement are disabled until approved sportsbook infrastructure is connected.</p></div>
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-[10px] leading-4 text-slate-500"><CircleHelp size={15} className="mt-0.5 shrink-0 text-[#1769e0]"/><p><b className="text-slate-700">Preview environment.</b> Fixtures and prices are illustrative, not live. Real-time odds and bet placement are disabled until approved sportsbook infrastructure is connected.</p></div><div className="flex justify-center py-6"><button onClick={()=>mainRef.current?.scrollTo({top:0,behavior:"smooth"})} className="inline-flex items-center gap-2 rounded-full border border-[#d7e5ff] bg-white px-5 py-2.5 text-xs font-extrabold text-[#1769e0] shadow-[0_4px_16px_rgba(7,27,73,.08)] transition hover:border-[#1769e0] hover:bg-blue-50"><ArrowDown size={14} className="rotate-180"/>Back to top</button></div>
       </main>
 
-      <aside className="hidden max-h-[calc(100vh-140px)] space-y-3 overflow-y-hidden overscroll-contain hover:overflow-y-auto lg:block">        <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <aside className="hidden max-h-[calc(100vh-140px)] space-y-3 overflow-y-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden hover:overflow-y-auto lg:block">        <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
           <label htmlFor="booking-code" className="mb-2 flex items-center gap-2 text-[10px] font-black tracking-wide text-slate-600"><Search size={14}/>BOOKING CODE SEARCH</label>
           <div className="flex gap-2">
             <input id="booking-code" value={bookingCode} onChange={e=>setBookingCode(e.target.value)} placeholder="Enter booking code" className="min-w-0 w-full rounded-full border border-slate-200 bg-white px-3 py-2.5 text-xs outline-none focus:rounded-full focus:border-blue-400 focus:outline-none focus:ring-0"/>
