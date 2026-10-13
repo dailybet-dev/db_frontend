@@ -22,9 +22,12 @@ const sports: Array<{name: 'Football' | 'Basketball' | 'Tennis' | 'Live' | 'Virt
 ];
 
 function Brand() {
-  return <a href="#" aria-label="DailyBet home" className="flex shrink-0 flex-col leading-none no-underline">
-    <span className="text-[25px] font-black tracking-[-1.4px] text-white">daily<span className="text-[#6aa4ff]">Bet</span></span>
-    <span className="mt-1 text-[8px] font-bold tracking-[2.3px] text-blue-100/70">YOUR GAME. YOUR CALL.</span>
+  return <a href="#" aria-label="DailyBet home" className="flex shrink-0 items-center gap-2.5 no-underline">
+    <img src="/images/dailybet-icon.svg" alt="" width="38" height="38" className="h-[38px] w-[38px] rounded-lg" />
+    <span className="flex flex-col leading-none">
+      <span className="text-[24px] font-black tracking-[-1.25px] text-white">daily<span className="text-[#6aa4ff]">Bet</span></span>
+      <span className="mt-1 text-[8px] font-bold tracking-[2px] text-blue-100/70">YOUR GAME. YOUR CALL.</span>
+    </span>
   </a>;
 }
 
