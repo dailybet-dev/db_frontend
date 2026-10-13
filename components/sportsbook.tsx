@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { Activity, ArrowDown, ChevronDown, CircleHelp, Clock3, Flame, Gamepad2, Menu, Search, ShieldCheck, Smartphone, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
+import { Activity, ArrowDown, ChevronDown, CircleHelp, Clock3, Dices, Flame, Gamepad2, Home, Menu, Search, ShieldCheck, Smartphone, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
 
 type Sport = 'Football' | 'Basketball' | 'Tennis';
 type Match = { id: string; sport: Sport; league: string; region: string; start: string; live: boolean; home: string; away: string; odds: [string, string, string] };
@@ -41,6 +41,7 @@ export default function Sportsbook() {
   const [slipOpen, setSlipOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [bookingCode, setBookingCode] = useState('');
 
   const shown = useMemo(() => matches.filter(m => {
     const search = (m.home+' '+m.away+' '+m.league+' '+m.region).toLowerCase().includes(query.toLowerCase());
@@ -81,15 +82,29 @@ export default function Sportsbook() {
       <div className="mx-auto flex h-[62px] max-w-[1480px] items-center gap-4 px-3 sm:px-5 lg:gap-7">
         <button aria-label="Open menu" onClick={()=>setMobileMenu(v=>!v)} className="rounded-md p-1.5 text-white/80 hover:bg-white/10 lg:hidden"><Menu size={22}/></button>
         <Brand/>
-        <div className="hidden max-w-[520px] flex-1 items-center rounded-lg border border-white/15 bg-white/[.08] px-3 md:flex"><Search size={17} className="shrink-0 text-blue-100/70"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search teams, leagues or matches…" className="w-full bg-transparent px-3 py-2.5 text-sm text-white outline-none placeholder:text-blue-100/60"/></div>
+        <div className="hidden max-w-[520px] flex-1 items-center rounded-full border border-white/15 bg-white/[.08] px-3 transition-colors focus-within:rounded-full focus-within:border-blue-300 focus-within:bg-white/[.12] md:flex"><Search size={17} className="shrink-0 text-blue-100/70"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search teams, leagues or matches…" className="w-full rounded-full bg-transparent px-3 py-2.5 text-sm text-white outline-none ring-0 focus:rounded-full focus:outline-none focus:ring-0 placeholder:text-blue-100/60"/></div>
         <div className="ml-auto flex items-center gap-2"><button onClick={()=>setNotice('Login will be enabled when the authentication service is connected.')} className="rounded-lg border border-white/40 px-3 py-2 text-xs font-extrabold hover:bg-white/10 sm:px-4 sm:text-sm">Log in</button><button onClick={()=>setNotice('Registration will be enabled after secure account services are connected.')} className="rounded-lg bg-[#1769e0] px-3 py-2 text-xs font-extrabold hover:bg-[#0d54bd] sm:px-4 sm:text-sm">Join now</button></div>
       </div>
+      <nav aria-label="Main navigation" className="flex h-11 items-center gap-2 overflow-x-auto border-t border-white/10 bg-[#091f50] px-4 text-xs font-extrabold sm:gap-5 sm:px-6">
+        <button aria-label="Home" title="Home" onClick={()=>{chooseSport('Football');setFilter('all')}} className="flex h-8 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><Home size={18}/></button>
+        <button onClick={()=>{chooseSport('Football')}} className="shrink-0 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10">Sports</button>
+        <button onClick={()=>{setSport('All');setFilter('live');setMobileMenu(false)}} className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10"><span className="h-1.5 w-1.5 rounded-full bg-rose-400"/>Live</button>
+        <button onClick={()=>setNotice('Casino games will be available when an approved casino provider is connected.')} className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10"><Dices size={15}/>Casino</button>
+        <button onClick={()=>setNotice('Virtual games will be available when an approved virtual sports provider is connected.')} className="shrink-0 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10">Virtuals</button>
+      </nav>
       {mobileMenu && <div className="border-t border-white/10 bg-[#0b2458] p-3 lg:hidden"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search teams or leagues" className="mb-2 w-full rounded-lg bg-white px-3 py-2.5 text-sm text-slate-900"/>{sports.map(s=><button key={s.name} onClick={()=>chooseSport(s.name)} className="mr-2 mb-2 rounded-lg bg-white/10 px-3 py-2 text-sm">{s.icon} {s.name}</button>)}</div>}
       <div className="flex h-9 items-center gap-5 overflow-hidden bg-[#0c2458] px-4 text-[10px] font-bold text-blue-50/90 sm:gap-7 sm:px-6 sm:text-xs"><span className="flex shrink-0 items-center gap-1.5 text-[#8ebaff]"><span className="h-1.5 w-1.5 rounded-full bg-rose-400"/> DEMO MODE</span><span>Football <b className="text-white">124</b></span><span>Basketball <b className="text-white">32</b></span><span>Tennis <b className="text-white">46</b></span><span>Virtuals <b className="text-white">24/7</b></span><span className="ml-auto shrink-0">UGX · Uganda</span></div>
     </header>
 
     <div className="mx-auto grid max-w-[1480px] grid-cols-1 items-start gap-4 px-2.5 py-4 sm:px-4 lg:grid-cols-[205px_minmax(0,1fr)_300px] lg:gap-4 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
-      <aside className="sticky top-[118px] hidden rounded-xl border border-slate-200 bg-white p-2 shadow-sm lg:block">
+      <aside className="hidden max-h-[calc(100vh-140px)] overflow-y-hidden overscroll-contain rounded-xl border border-slate-200 bg-white p-2 shadow-sm hover:overflow-y-auto lg:block">
+        <section className="mb-2 rounded-lg bg-slate-50 p-2.5">
+          <label htmlFor="booking-code" className="mb-2 flex items-center gap-2 text-[10px] font-black tracking-wide text-slate-600"><Search size={14}/>BOOKING CODE SEARCH</label>
+          <div className="flex gap-1.5">
+            <input id="booking-code" value={bookingCode} onChange={e=>setBookingCode(e.target.value)} placeholder="Enter code" className="min-w-0 w-full rounded-full border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:rounded-full focus:border-blue-400 focus:outline-none focus:ring-0"/>
+            <button onClick={()=>setNotice(bookingCode.trim() ? 'Booking code lookup will be enabled when the sportsbook provider is connected.' : 'Enter a booking code to search.')} className="shrink-0 rounded-full bg-[#1769e0] px-3 py-2 text-[10px] font-extrabold text-white hover:bg-[#0d54bd]">Search</button>
+          </div>
+        </section>
         <p className="px-3 pb-2 pt-3 text-[10px] font-black tracking-[1.4px] text-slate-400">MAIN MENU</p>
         {[{name:'Sports home',icon:<Trophy size={17}/>,action:()=>{setSport('Football');setFilter('all')}},{name:'Live now',icon:<Activity size={17}/>,action:()=>{setSport('All');setFilter('live')}},{name:'Upcoming',icon:<Clock3 size={17}/>,action:()=>{setSport('All');setFilter('upcoming')}},{name:'Popular',icon:<Flame size={17}/>,action:()=>{setSport('Football');setFilter('all')}}].map((item,i)=><button key={item.name} onClick={item.action} className={'mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-xs font-bold '+((i===0&&filter==='all'&&sport==='Football')?'bg-blue-50 text-[#1769e0]':'text-slate-600 hover:bg-slate-50')}><span>{item.icon}</span>{item.name}{i===1&&<span className="ml-auto rounded bg-rose-50 px-1.5 py-0.5 text-[10px] text-rose-500">LIVE</span>}</button>)}
         <p className="px-3 pb-2 pt-5 text-[10px] font-black tracking-[1.4px] text-slate-400">SPORTS</p>
@@ -99,7 +114,7 @@ export default function Sportsbook() {
         <div className="mt-4 rounded-lg bg-[#f1f6ff] p-3 text-[11px] leading-5 text-slate-500"><p className="font-extrabold text-[#071b49]">Play responsibly</p>Only bet what you can afford to lose. Take breaks and set limits.</div>
       </aside>
 
-      <main className="min-w-0">
+      <main className="min-w-0 lg:max-h-[calc(100vh-140px)] lg:overflow-y-hidden lg:overscroll-contain lg:hover:overflow-y-auto">
         <nav className="mb-3 flex gap-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">{sports.map(s=><button key={s.name} onClick={()=>chooseSport(s.name)} className={'shrink-0 rounded-lg px-3 py-2.5 text-xs font-extrabold transition sm:flex-1 sm:px-2 '+((sport===s.name||(s.name==='Live'&&filter==='live'))?'bg-[#1769e0] text-white':'text-slate-500 hover:bg-slate-100')}><span className="mr-1.5">{s.icon}</span>{s.name}</button>)}</nav>
         <section className="relative mb-3 overflow-hidden rounded-xl bg-gradient-to-r from-[#071b49] via-[#103e8d] to-[#1769e0] px-4 py-5 text-white sm:px-6 sm:py-6"><div className="absolute -right-6 -top-20 h-56 w-56 rounded-full border-[24px] border-white/[.06]"/><div className="relative z-10 flex items-center justify-between gap-3"><div><p className="text-[9px] font-black tracking-[2px] text-blue-200 sm:text-[10px]">WELCOME TO DAILYBET</p><h1 className="mt-2 text-[21px] font-black tracking-tight sm:text-[27px]">Every match. Every moment.</h1><p className="mt-1.5 max-w-sm text-[11px] leading-5 text-blue-100 sm:text-xs">Follow the action, explore markets and build your bet slip.</p></div><div className="hidden rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-[11px] font-extrabold sm:block"><ShieldCheck className="mr-1.5 inline" size={15}/>DAILYBET</div></div></section>
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_18px_rgba(7,27,73,.04)]">
@@ -114,7 +129,7 @@ export default function Sportsbook() {
         <div className="mt-3 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-[10px] leading-4 text-slate-500"><CircleHelp size={15} className="mt-0.5 shrink-0 text-[#1769e0]"/><p><b className="text-slate-700">Preview environment.</b> Fixtures and prices are illustrative, not live. Real-time odds and bet placement are disabled until approved sportsbook infrastructure is connected.</p></div>
       </main>
 
-      <aside className="sticky top-[118px] hidden space-y-3 lg:block">{slip}<section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center gap-2 text-sm font-extrabold"><Sparkles size={17} className="text-[#1769e0]"/>New to DailyBet?</div><p className="mt-2 text-[11px] leading-5 text-slate-500">A clear, mobile-friendly home for the sports and markets you follow. Account and payment features are being prepared.</p><button onClick={()=>setNotice('Secure registration will be available after the authentication service is connected.')} className="mt-3 text-xs font-extrabold text-[#1769e0]">Create an account →</button></section><section className="rounded-xl bg-[#071b49] p-4 text-white"><div className="flex items-center gap-2 text-xs font-extrabold"><Zap size={15} className="text-blue-300"/>DailyBet promise</div><p className="mt-2 text-[11px] leading-5 text-blue-100/75">A simple experience, transparent selections and responsible play at every step.</p></section></aside>
+      <aside className="hidden max-h-[calc(100vh-140px)] space-y-3 overflow-y-hidden overscroll-contain hover:overflow-y-auto lg:block">{slip}<section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center gap-2 text-sm font-extrabold"><Sparkles size={17} className="text-[#1769e0]"/>New to DailyBet?</div><p className="mt-2 text-[11px] leading-5 text-slate-500">A clear, mobile-friendly home for the sports and markets you follow. Account and payment features are being prepared.</p><button onClick={()=>setNotice('Secure registration will be available after the authentication service is connected.')} className="mt-3 text-xs font-extrabold text-[#1769e0]">Create an account →</button></section><section className="rounded-xl bg-[#071b49] p-4 text-white"><div className="flex items-center gap-2 text-xs font-extrabold"><Zap size={15} className="text-blue-300"/>DailyBet promise</div><p className="mt-2 text-[11px] leading-5 text-blue-100/75">A simple experience, transparent selections and responsible play at every step.</p></section></aside>
     </div>
 
     <footer className="mx-auto flex max-w-[1480px] flex-col gap-2 px-4 pb-8 pt-2 text-[10px] leading-5 text-slate-400 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 DailyBet · UI preview</span><span>Help · Terms · Privacy · Responsible play</span><span className="font-bold">18+ only · Play responsibly</span></footer>
