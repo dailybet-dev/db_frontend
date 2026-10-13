@@ -14,6 +14,15 @@ npm run dev
 ```
 Open http://localhost:3000.
 
+## Railway deployment
+1. Deploy this repository as its own Railway service.
+2. Set `NEXT_PUBLIC_API_BASE_URL` to the public URL of the DailyBet backend plus `/api/v1` (for example, `https://your-backend-domain/api/v1`).
+3. Generate a Railway public domain for the frontend.
+4. Add that exact frontend origin to the backend's `CORS_ORIGINS` variable.
+5. Redeploy both services after updating variables.
+
+Railway's `railway.json` specifies the build/start commands and uses `/api/health` for its health check. The frontend service does not need BetConstruct credentials.
+
 ## Quality checks
 ```bash
 npm run typecheck
