@@ -167,7 +167,7 @@ export default function Sportsbook() {
       <label className="mt-4 block text-[10px] font-extrabold tracking-wide text-slate-500">STAKE · UGX</label><input type="number" min="0" step="500" value={stake} onChange={e=>setStake(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-3 font-bold outline-none focus:border-blue-500"/>
       <div className="mt-4 flex justify-between text-xs text-slate-500"><span>Combined odds</span><b className="text-slate-800">{combined.toFixed(2)}</b></div>
       <div className="mt-3 flex items-center justify-between"><span className="text-xs text-slate-500">Potential return*</span><strong className="text-lg font-black text-[#16804a]">UGX {Math.round(payout).toLocaleString('en-UG')}</strong></div>
-      <button onClick={()=>setNotice('Demo only: no real wager has been placed. A licensed sportsbook and verified account are required.')} className="mt-4 w-full rounded-lg bg-[#1769e0] px-4 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#0d54bd]">Continue to bet <span aria-hidden="true">→</span></button>
+      <button onClick={()=>setNotice('Please log in to place a bet. Login will be available when the authentication service is connected.')} className="mt-4 w-full rounded-lg bg-[#1769e0] px-4 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#0d54bd]">Login to place bet <span aria-hidden="true">→</span></button>
       <p className="mt-3 text-center text-[10px] leading-4 text-slate-400">*Illustrative calculation only. Odds are sample data, not live prices.</p>
     </div>}
   </section>;
