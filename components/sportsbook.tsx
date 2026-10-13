@@ -37,7 +37,6 @@ export default function Sportsbook() {
   const [query, setQuery] = useState('');
   const [picks, setPicks] = useState<Pick[]>([]);
   const [stake, setStake] = useState('1000');
-  const [multiple, setMultiple] = useState(true);
   const [slipOpen, setSlipOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -49,7 +48,7 @@ export default function Sportsbook() {
   }), [sport, filter, query]);
   const combined = picks.reduce((acc,p) => acc*p.price, 1);
   const stakeValue = Math.max(0, Number(stake) || 0);
-  const payout = multiple ? stakeValue*combined : stakeValue*(picks[0]?.price ?? 0);
+  const payout = stakeValue*combined;
   const winBonus = picks.length >= 5 ? 125 : picks.length === 4 ? 100 : picks.length === 3 ? 50 : picks.length === 2 ? 25 : 0;
   const bonusPicks = picks.map(p => `${p.home} vs ${p.away} · ${p.selection} @ ${p.price.toFixed(2)}`);
 
@@ -67,12 +66,11 @@ export default function Sportsbook() {
       {picks.length>0 && <button onClick={()=>setPicks([])} className="text-xs font-bold text-slate-500 hover:text-[#1769e0]">Clear all</button>}
       {slipOpen && <button aria-label="Close bet slip" onClick={()=>setSlipOpen(false)} className="rounded-md p-1 text-slate-500"><X size={19}/></button>}
     </div>
-    <div className="flex gap-1 bg-slate-50 p-1.5"><button onClick={()=>setMultiple(false)} className={'flex-1 rounded-md py-2 text-xs font-extrabold '+(!multiple?'bg-white text-[#1769e0] shadow-sm':'text-slate-500')}>Singles</button><button onClick={()=>setMultiple(true)} className={'flex-1 rounded-md py-2 text-xs font-extrabold '+(multiple?'bg-white text-[#1769e0] shadow-sm':'text-slate-500')}>Multiple</button></div>
     {picks.length===0 ? <div className="px-5 py-10 text-center"><div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-blue-50 text-[#1769e0]"><Ticket size={22}/></div><p className="font-extrabold text-slate-700">Your bet slip is empty</p><p className="mx-auto mt-2 max-w-[220px] text-xs leading-5 text-slate-500">Select odds from a match to add your prediction here.</p></div> :
     <div className="p-4">
       <div className="space-y-3">{picks.map(p=><div key={p.key} className="rounded-lg border border-slate-200 p-3"><div className="flex items-start justify-between gap-2"><div><p className="text-xs font-extrabold text-slate-800">{p.home} vs {p.away}</p><p className="mt-1 text-[10px] text-slate-500">{p.league} · Pick {p.selection}</p></div><button aria-label="Remove pick" onClick={()=>setPicks(old=>old.filter(x=>x.key!==p.key))} className="text-slate-400 hover:text-red-500"><X size={16}/></button></div><p className="mt-2 text-sm font-black text-[#1769e0]">{p.price.toFixed(2)}</p></div>)}</div>
       <label className="mt-4 block text-[10px] font-extrabold tracking-wide text-slate-500">STAKE · UGX</label><input type="number" min="0" step="500" value={stake} onChange={e=>setStake(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-3 font-bold outline-none focus:border-blue-500"/>
-      <div className="mt-4 flex justify-between text-xs text-slate-500"><span>{multiple?'Combined odds':'Selected odds'}</span><b className="text-slate-800">{(multiple?combined:(picks[0]?.price??0)).toFixed(2)}</b></div>
+      <div className="mt-4 flex justify-between text-xs text-slate-500"><span>Combined odds</span><b className="text-slate-800">{combined.toFixed(2)}</b></div>
       <div className="mt-3 flex items-center justify-between"><span className="text-xs text-slate-500">Potential return*</span><strong className="text-lg font-black text-[#16804a]">UGX {Math.round(payout).toLocaleString('en-UG')}</strong></div>
       <button onClick={()=>setNotice('Demo only: no real wager has been placed. A licensed sportsbook and verified account are required.')} className="mt-4 w-full rounded-lg bg-[#1769e0] px-4 py-3.5 text-sm font-extrabold text-white transition hover:bg-[#0d54bd]">Continue to bet <span aria-hidden="true">→</span></button>
       <p className="mt-3 text-center text-[10px] leading-4 text-slate-400">*Illustrative calculation only. Odds are sample data, not live prices.</p>
@@ -139,7 +137,7 @@ export default function Sportsbook() {
     <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
       <section aria-live="polite" className="border-t border-blue-300/20 bg-[#0b2458] px-3 pb-2 pt-2 text-white shadow-[0_-6px_24px_rgba(7,27,73,.25)]">
         <div className="mb-1 flex items-center justify-between gap-2">
-          <p className="text-[11px] font-extrabold leading-4">{picks.length===0 ? 'Add legs for up to a 125% Win Bonus' : `Selected odds: ${(multiple ? combined : (picks[0]?.price ?? 0)).toFixed(2)} · Win bonus: ${winBonus}%`}</p>
+          <p className="text-[11px] font-extrabold leading-4">{picks.length===0 ? 'Add legs for up to a 125% Win Bonus' : `Combined odds: ${combined.toFixed(2)} · Win bonus: ${winBonus}%`}</p>
           {picks.length>0 && <button onClick={()=>setSlipOpen(true)} className="shrink-0 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-extrabold text-blue-100">View slip ({picks.length})</button>}
         </div>
         {picks.length>0 && <div className="max-h-14 overflow-y-auto text-[10px] leading-4 text-blue-100/80">{bonusPicks.join('  •  ')}</div>}
