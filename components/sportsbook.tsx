@@ -50,6 +50,8 @@ export default function Sportsbook() {
   const combined = picks.reduce((acc,p) => acc*p.price, 1);
   const stakeValue = Math.max(0, Number(stake) || 0);
   const payout = multiple ? stakeValue*combined : stakeValue*(picks[0]?.price ?? 0);
+  const winBonus = picks.length >= 5 ? 125 : picks.length === 4 ? 100 : picks.length === 3 ? 50 : picks.length === 2 ? 25 : 0;
+  const bonusPicks = picks.map(p => `${p.home} vs ${p.away} · ${p.selection} @ ${p.price.toFixed(2)}`);
 
   function togglePick(match: Match, label: string, value: string) {
     const key = match.id+'-'+label;
@@ -77,7 +79,7 @@ export default function Sportsbook() {
     </div>}
   </section>;
 
-  return <div className="min-h-screen pb-20 md:pb-0">
+  return <div className="min-h-screen pb-40 md:pb-0">
     <header className="sticky top-0 z-30 bg-[#071b49] text-white shadow-md">
       <div className="mx-auto flex h-[62px] max-w-[1480px] items-center gap-4 px-3 sm:px-5 lg:gap-7">
         <button aria-label="Open menu" onClick={()=>setMobileMenu(v=>!v)} className="rounded-md p-1.5 text-white/80 hover:bg-white/10 lg:hidden"><Menu size={22}/></button>
@@ -93,7 +95,7 @@ export default function Sportsbook() {
         <button onClick={()=>setNotice('Virtual games will be available when an approved virtual sports provider is connected.')} className="shrink-0 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10">Virtuals</button>
       </nav>
       {mobileMenu && <div className="border-t border-white/10 bg-[#0b2458] p-3 lg:hidden"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search teams or leagues" className="mb-2 w-full rounded-lg bg-white px-3 py-2.5 text-sm text-slate-900"/>{sports.map(s=><button key={s.name} onClick={()=>chooseSport(s.name)} className="mr-2 mb-2 rounded-lg bg-white/10 px-3 py-2 text-sm">{s.icon} {s.name}</button>)}</div>}
-      <div className="flex h-9 items-center gap-5 overflow-hidden bg-[#0c2458] px-4 text-[10px] font-bold text-blue-50/90 sm:gap-7 sm:px-6 sm:text-xs"><span className="flex shrink-0 items-center gap-1.5 text-[#8ebaff]"><span className="h-1.5 w-1.5 rounded-full bg-rose-400"/> DEMO MODE</span><span>Football <b className="text-white">124</b></span><span>Basketball <b className="text-white">32</b></span><span>Tennis <b className="text-white">46</b></span><span>Virtuals <b className="text-white">24/7</b></span><span className="ml-auto shrink-0">UGX · Uganda</span></div>
+
     </header>
 
     <div className="mx-auto grid max-w-[1480px] grid-cols-1 items-start gap-4 px-2.5 py-4 sm:px-4 lg:grid-cols-[205px_minmax(0,1fr)_300px] lg:gap-4 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
@@ -129,14 +131,30 @@ export default function Sportsbook() {
         <div className="mt-3 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-[10px] leading-4 text-slate-500"><CircleHelp size={15} className="mt-0.5 shrink-0 text-[#1769e0]"/><p><b className="text-slate-700">Preview environment.</b> Fixtures and prices are illustrative, not live. Real-time odds and bet placement are disabled until approved sportsbook infrastructure is connected.</p></div>
       </main>
 
-      <aside className="hidden max-h-[calc(100vh-140px)] space-y-3 overflow-y-hidden overscroll-contain hover:overflow-y-auto lg:block">{slip}<section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center gap-2 text-sm font-extrabold"><Sparkles size={17} className="text-[#1769e0]"/>New to DailyBet?</div><p className="mt-2 text-[11px] leading-5 text-slate-500">A clear, mobile-friendly home for the sports and markets you follow. Account and payment features are being prepared.</p><button onClick={()=>setNotice('Secure registration will be available after the authentication service is connected.')} className="mt-3 text-xs font-extrabold text-[#1769e0]">Create an account →</button></section><section className="rounded-xl bg-[#071b49] p-4 text-white"><div className="flex items-center gap-2 text-xs font-extrabold"><Zap size={15} className="text-blue-300"/>DailyBet promise</div><p className="mt-2 text-[11px] leading-5 text-blue-100/75">A simple experience, transparent selections and responsible play at every step.</p></section></aside>
+      <aside className="hidden max-h-[calc(100vh-140px)] space-y-3 overflow-y-hidden overscroll-contain hover:overflow-y-auto lg:block">        <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <label htmlFor="booking-code" className="mb-2 flex items-center gap-2 text-[10px] font-black tracking-wide text-slate-600"><Search size={14}/>BOOKING CODE SEARCH</label>
+          <div className="flex gap-2">
+            <input id="booking-code" value={bookingCode} onChange={e=>setBookingCode(e.target.value)} placeholder="Enter booking code" className="min-w-0 w-full rounded-full border border-slate-200 bg-white px-3 py-2.5 text-xs outline-none focus:rounded-full focus:border-blue-400 focus:outline-none focus:ring-0"/>
+            <button onClick={()=>setNotice(bookingCode.trim() ? 'Booking code lookup will be enabled when the sportsbook provider is connected.' : 'Enter a booking code to search.')} className="shrink-0 rounded-full bg-[#1769e0] px-3 py-2 text-[10px] font-extrabold text-white hover:bg-[#0d54bd]">Search</button>
+          </div>
+        </section>
+{slip}<section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-center gap-2 text-sm font-extrabold"><Sparkles size={17} className="text-[#1769e0]"/>New to DailyBet?</div><p className="mt-2 text-[11px] leading-5 text-slate-500">A clear, mobile-friendly home for the sports and markets you follow. Account and payment features are being prepared.</p><button onClick={()=>setNotice('Secure registration will be available after the authentication service is connected.')} className="mt-3 text-xs font-extrabold text-[#1769e0]">Create an account →</button></section><section className="rounded-xl bg-[#071b49] p-4 text-white"><div className="flex items-center gap-2 text-xs font-extrabold"><Zap size={15} className="text-blue-300"/>DailyBet promise</div><p className="mt-2 text-[11px] leading-5 text-blue-100/75">A simple experience, transparent selections and responsible play at every step.</p></section></aside>
     </div>
 
     <footer className="mx-auto flex max-w-[1480px] flex-col gap-2 px-4 pb-8 pt-2 text-[10px] leading-5 text-slate-400 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 DailyBet · UI preview</span><span>Help · Terms · Privacy · Responsible play</span><span className="font-bold">18+ only · Play responsibly</span></footer>
 
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-slate-200 bg-white px-1 pb-[max(7px,env(safe-area-inset-bottom))] pt-2 shadow-[0_-4px_18px_rgba(7,27,73,.06)] lg:hidden">
-      {[{label:'Home',icon:<Trophy size={19}/>,click:()=>{chooseSport('Football');setFilter('all')}},{label:'Live',icon:<Activity size={19}/>,click:()=>{setSport('All');setFilter('live')}},{label:'Sports',icon:<Flame size={19}/>,click:()=>{setSport('Football');setFilter('all')}},{label:'Bet slip',icon:<Ticket size={19}/>,click:()=>setSlipOpen(true)},{label:'Account',icon:<Wallet size={19}/>,click:()=>setNotice('Account and wallet features are not connected yet.')}].map((item,i)=><button key={item.label} onClick={item.click} className={'relative flex min-w-[54px] flex-col items-center gap-1 px-2 py-1 text-[9px] font-extrabold '+((i===3&&slipOpen)?'text-[#1769e0]':'text-slate-500 hover:text-[#1769e0]')}><span className="relative">{item.icon}{i===3&&picks.length>0&&<span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-[#1769e0] px-1 text-[9px] text-white">{picks.length}</span>}</span>{item.label}</button>)}
-    </nav>
+    <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
+      <section aria-live="polite" className="border-t border-blue-300/20 bg-[#0b2458] px-3 pb-2 pt-2 text-white shadow-[0_-6px_24px_rgba(7,27,73,.25)]">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <p className="text-[11px] font-extrabold leading-4">{picks.length===0 ? 'Add legs for up to a 125% Win Bonus' : `Selected odds: ${(multiple ? combined : (picks[0]?.price ?? 0)).toFixed(2)} · Win bonus: ${winBonus}%`}</p>
+          {picks.length>0 && <button onClick={()=>setSlipOpen(true)} className="shrink-0 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-extrabold text-blue-100">View slip ({picks.length})</button>}
+        </div>
+        {picks.length>0 && <div className="max-h-14 overflow-y-auto text-[10px] leading-4 text-blue-100/80">{bonusPicks.join('  •  ')}</div>}
+      </section>
+      <nav aria-label="Mobile navigation" className="flex justify-around border-t border-white/10 bg-[#071b49] px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 shadow-[0_-4px_18px_rgba(7,27,73,.25)]">
+        {[{label:'Home',icon:<Home size={19}/>,click:()=>{chooseSport('Football');setFilter('all')}},{label:'Live',icon:<Activity size={19}/>,click:()=>{setSport('All');setFilter('live')}},{label:'Sports',icon:<Flame size={19}/>,click:()=>{setSport('Football');setFilter('all')}},{label:'Bet slip',icon:<Ticket size={19}/>,click:()=>setSlipOpen(true)},{label:'Account',icon:<Wallet size={19}/>,click:()=>setNotice('Account and wallet features are not connected yet.')}].map((item,i)=><button key={item.label} onClick={item.click} className={'relative flex min-w-[54px] flex-col items-center gap-1 px-2 py-1 text-[9px] font-extrabold '+((i===3&&slipOpen)?'text-[#8ebaff]':'text-blue-100/80 hover:text-white')}><span className="relative">{item.icon}{i===3&&picks.length>0&&<span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-[#1769e0] px-1 text-[9px] text-white">{picks.length}</span>}</span>{item.label}</button>)}
+      </nav>
+    </div>
 
     {slipOpen&&<div className="fixed inset-0 z-50 flex items-end justify-center bg-[#071b49]/55 sm:items-center lg:hidden" onClick={e=>{if(e.target===e.currentTarget)setSlipOpen(false)}}><div className="max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-white p-3 pb-[max(16px,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-2xl">{slip}</div></div>}
     {notice&&<div role="status" className="fixed bottom-20 left-1/2 z-[60] flex w-[calc(100%-24px)] max-w-lg -translate-x-1/2 items-start gap-3 rounded-xl bg-[#071b49] px-4 py-3.5 text-xs leading-5 text-white shadow-xl lg:bottom-6"><Smartphone size={17} className="mt-0.5 shrink-0 text-blue-300"/><p className="flex-1">{notice}</p><button aria-label="Dismiss" onClick={()=>setNotice('')} className="shrink-0 text-white/70 hover:text-white"><X size={17}/></button></div>}
