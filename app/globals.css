@@ -1,4 +1,4 @@
 @import 'tailwindcss';
 
 :root{--navy:#071b49;--blue:#1769e0;--blue-dark:#0d54bd;--ink:#17233c;--muted:#738096;--line:#e4e9f1;--page:#f2f4f8;--panel:#fff;--positive:#16804a;--danger:#d74747}
-*{box-sizing:border-box}html{background:var(--page);scroll-behavior:smooth}body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}button,input{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #82b5ff;outline-offset:2px}::selection{background:#cfe0ff;color:var(--navy)}
+*{box-sizing:border-box}html{background:var(--page);scroll-behavior:smooth}body{margin:0;background:var(--page);color:var(--ink);font-family:Roboto,Arial,Helvetica,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}button,input{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #82b5ff;outline-offset:2px}::selection{background:#cfe0ff;color:var(--navy)}
