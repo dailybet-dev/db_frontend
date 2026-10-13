@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { Activity, ArrowDown, ChevronDown, CircleHelp, Clock3, Dices, Flame, Gamepad2, Home, Menu, Search, ShieldCheck, Smartphone, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
+import { Activity, ArrowDown, Award, ChevronDown, CircleHelp, Clock3, Dices, Flame, Gamepad2, Home, Menu, Search, ShieldCheck, Smartphone, Sparkles, Ticket, Trophy, Wallet, X, Zap } from 'lucide-react';
 
 type Sport = 'Football' | 'Basketball' | 'Tennis';
 type Match = { id: string; sport: Sport; league: string; region: string; start: string; live: boolean; home: string; away: string; odds: [string, string, string] };
@@ -33,6 +33,8 @@ function Brand() {
 
 export default function Sportsbook() {
   const [sport, setSport] = useState<string>('Football');
+  const [selectedLeague, setSelectedLeague] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
   const [filter, setFilter] = useState<'all'|'live'|'upcoming'>('all');
   const [query, setQuery] = useState('');
   const [picks, setPicks] = useState<Pick[]>([]);
@@ -44,8 +46,8 @@ export default function Sportsbook() {
 
   const shown = useMemo(() => matches.filter(m => {
     const search = (m.home+' '+m.away+' '+m.league+' '+m.region).toLowerCase().includes(query.toLowerCase());
-    return search && (sport==='All' || sport===m.sport || (sport==='Live' && m.live)) && (filter==='all' || (filter==='live' && m.live) || (filter==='upcoming' && !m.live));
-  }), [sport, filter, query]);
+    return search && (!selectedLeague || m.league===selectedLeague) && (!selectedCountry || m.region===selectedCountry) && (sport==='All' || sport===m.sport || (sport==='Live' && m.live)) && (filter==='all' || (filter==='live' && m.live) || (filter==='upcoming' && !m.live));
+  }), [sport, filter, query, selectedLeague, selectedCountry]);
   const combined = picks.reduce((acc,p) => acc*p.price, 1);
   const stakeValue = Math.max(0, Number(stake) || 0);
   const payout = stakeValue*combined;
@@ -57,7 +59,13 @@ export default function Sportsbook() {
     setPicks(old => old.some(p=>p.key===key) ? old.filter(p=>p.key!==key) : [...old.filter(p=>p.matchId!==match.id), {key,matchId:match.id,selection:label,price:Number(value),home:match.home,away:match.away,league:match.region+' · '+match.league}]);
   }
   function chooseSport(name: string) {
-    setSport(name); setFilter('all'); setMobileMenu(false);
+    setSport(name); setFilter('all'); setSelectedLeague(''); setSelectedCountry(''); setMobileMenu(false);
+  }
+  function chooseLeague(name: string) {
+    setSelectedLeague(name); setSelectedCountry(''); setSport('All'); setFilter('all');
+  }
+  function chooseCountry(region: string) {
+    setSelectedCountry(region); setSelectedLeague(''); setSport('All'); setFilter('all');
   }
 
   const slip = <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_18px_rgba(7,27,73,.05)]">
@@ -82,15 +90,19 @@ export default function Sportsbook() {
       <div className="mx-auto flex h-[62px] max-w-[1480px] items-center gap-4 px-3 sm:px-5 lg:gap-7">
         <button aria-label="Open menu" onClick={()=>setMobileMenu(v=>!v)} className="rounded-md p-1.5 text-white/80 hover:bg-white/10 lg:hidden"><Menu size={22}/></button>
         <Brand/>
-        <div className="hidden max-w-[520px] flex-1 items-center rounded-full border border-white/15 bg-white/[.08] px-3 transition-colors focus-within:rounded-full focus-within:border-blue-300 focus-within:bg-white/[.12] md:flex"><Search size={17} className="shrink-0 text-blue-100/70"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search teams, leagues or matches…" className="w-full rounded-full bg-transparent px-3 py-2.5 text-sm text-white outline-none ring-0 focus:rounded-full focus:outline-none focus:ring-0 placeholder:text-blue-100/60"/></div>
+        <div className="hidden max-w-[520px] flex-1 items-center rounded-full border border-white/15 bg-white/[.08] px-3 md:flex"><Search size={17} className="shrink-0 text-blue-100/70"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search teams, leagues or matches…" className="w-full rounded-full bg-transparent px-3 py-2.5 text-sm text-white outline-none ring-0 focus:rounded-full focus:outline-none focus:ring-0 placeholder:text-blue-100/60"/></div>
         <div className="ml-auto flex items-center gap-2"><button onClick={()=>setNotice('Login will be enabled when the authentication service is connected.')} className="rounded-lg border border-white/40 px-3 py-2 text-xs font-extrabold hover:bg-white/10 sm:px-4 sm:text-sm">Log in</button><button onClick={()=>setNotice('Registration will be enabled after secure account services are connected.')} className="rounded-lg bg-[#1769e0] px-3 py-2 text-xs font-extrabold hover:bg-[#0d54bd] sm:px-4 sm:text-sm">Join now</button></div>
       </div>
-      <nav aria-label="Main navigation" className="flex h-11 items-center gap-2 overflow-x-auto border-t border-white/10 bg-[#091f50] px-4 text-xs font-extrabold sm:gap-5 sm:px-6">
-        <button aria-label="Home" title="Home" onClick={()=>{chooseSport('Football');setFilter('all')}} className="flex h-8 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><Home size={18}/></button>
-        <button onClick={()=>{chooseSport('Football')}} className="shrink-0 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10">Sports</button>
-        <button onClick={()=>{setSport('All');setFilter('live');setMobileMenu(false)}} className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10"><span className="h-1.5 w-1.5 rounded-full bg-rose-400"/>Live</button>
-        <button onClick={()=>setNotice('Casino games will be available when an approved casino provider is connected.')} className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10"><Dices size={15}/>Casino</button>
-        <button onClick={()=>setNotice('Virtual games will be available when an approved virtual sports provider is connected.')} className="shrink-0 rounded-full px-3 py-2 text-blue-50 hover:bg-white/10">Virtuals</button>
+      <nav aria-label="Main navigation" className="flex h-12 items-center gap-1 overflow-x-auto border-t border-white/10 bg-[#091f50] px-3 text-xs font-bold sm:gap-2 sm:px-6">
+        <button aria-label="Home" title="Home" onClick={()=>{chooseSport('Football');setFilter('all')}} className="flex h-9 w-10 shrink-0 items-center justify-center rounded-xl text-white transition hover:bg-white/10"><Home size={18}/></button>
+        {[
+          {label:'Sports',icon:<Trophy size={15}/>,count:'24',click:()=>chooseSport('Football')},
+          {label:'Live',icon:<Activity size={15}/>,count:'8',click:()=>{setSport('All');setSelectedLeague('');setSelectedCountry('');setFilter('live');setMobileMenu(false)}},
+          {label:'Casino',icon:<Dices size={15}/>,count:'12',click:()=>setNotice('Casino games will be available when an approved casino provider is connected.')},
+          {label:'Virtuals',icon:<Gamepad2 size={15}/>,count:'6',click:()=>setNotice('Virtual games will be available when an approved virtual sports provider is connected.')},
+          {label:'Popular',icon:<Flame size={15}/>,count:'10',click:()=>{chooseSport('Football');setFilter('all')}},
+          {label:'Outrights',icon:<Award size={15}/>,count:'4',click:()=>setNotice('Outright markets will appear when a live sportsbook feed is integrated.')}
+        ].map(item=><button key={item.label} onClick={item.click} className="flex shrink-0 items-center gap-1.5 rounded-xl px-2.5 py-2 text-blue-50 transition hover:bg-white/10 sm:px-3"><span className="text-blue-200">{item.icon}</span><span>{item.label}</span><span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] font-extrabold leading-none text-blue-100">{item.count}</span></button>)}
       </nav>
       {mobileMenu && <div className="border-t border-white/10 bg-[#0b2458] p-3 lg:hidden"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search teams or leagues" className="mb-2 w-full rounded-lg bg-white px-3 py-2.5 text-sm text-slate-900"/>{sports.map(s=><button key={s.name} onClick={()=>chooseSport(s.name)} className="mr-2 mb-2 rounded-lg bg-white/10 px-3 py-2 text-sm">{s.icon} {s.name}</button>)}</div>}
 
